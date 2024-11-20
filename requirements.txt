@@ -1,9 +1,9 @@
-streamlit
-pandas
-numpy
-matplotlib
-seaborn
-scikit-learn
-joblib
-openpyxl
-st-aggrid
+streamlit==1.30.0
+pandas==1.3.5
+numpy==1.21.6
+matplotlib==3.4.3
+seaborn==0.11.2
+scikit-learn==0.24.2
+joblib==1.1.0
+openpyxl==3.0.9
+st-aggrid==0.3.2; python_version >= "3.7" and python_version < "3.10"
