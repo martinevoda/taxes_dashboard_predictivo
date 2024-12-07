@@ -36,11 +36,11 @@ except Exception as e:
 feature_names = [
     "tipo_cliente_Autónomo", "tipo_cliente_Empresa", "tipo_cliente_Persona Física",
     "tipo_impuesto_IVA", "tipo_impuesto_Impuesto a las Ganancias", "tipo_impuesto_Ingresos Brutos",
-    "tipo_impuesto_Monotributo", "tipo_deduccion_Aportes Seguridad Social", 
+    "tipo_impuesto_Monotributo", "tipo_deduccion_Aportes Seguridad Social",
     "tipo_deduccion_Gastos Deducibles", "tipo_deduccion_Gastos Médicos",
-    "tipo_deduccion_Inversiones", "tipo_ingreso_Alquileres", "tipo_ingreso_Inversiones", 
-    "tipo_ingreso_Prestación de Servicios", "tipo_ingreso_Venta de Bienes", 
-    "monto_ingreso", "monto_deduccion", "valor_activo", "deduccion_ingresos_ratio", 
+    "tipo_deduccion_Inversiones", "tipo_ingreso_Alquileres", "tipo_ingreso_Inversiones",
+    "tipo_ingreso_Prestación de Servicios", "tipo_ingreso_Venta de Bienes",
+    "monto_ingreso", "monto_deduccion", "valor_activo", "deduccion_ingresos_ratio",
     "activo_ingreso_ratio"
 ]
 
@@ -130,8 +130,14 @@ def procesar_excel(archivo):
                 "Tipos_Ingresos": fila["Tipos_Ingresos"]
             })
         
-        # Agregar los nuevos clientes al DataFrame principal
-        st.session_state['dashboard_df'] = pd.concat([st.session_state['dashboard_df'], pd.DataFrame(nuevos_clientes)], ignore_index=True)
+        # Crear DataFrame para nuevos clientes
+        nuevos_df = pd.DataFrame(nuevos_clientes)
+        
+        # Evitar duplicados combinando con los existentes
+        st.session_state['dashboard_df'] = pd.concat(
+            [st.session_state['dashboard_df'], nuevos_df]
+        ).drop_duplicates(subset=["Cliente"], ignore_index=True)
+
         st.success("Archivo procesado exitosamente. Los clientes se han agregado al dashboard.")
     
     except Exception as e:
@@ -144,7 +150,6 @@ archivo_excel = st.sidebar.file_uploader("Sube un archivo Excel con los datos de
 if archivo_excel:
     procesar_excel(archivo_excel)
 
-
 # Formulario para agregar clientes
 st.sidebar.subheader("Agregar Cliente Manualmente")
 with st.sidebar.form("formulario_cliente"):
@@ -154,17 +159,17 @@ with st.sidebar.form("formulario_cliente"):
     activo = st.number_input("Valor del Activo ($)", min_value=0.0, key="activo")
     categoria = st.selectbox("Categoría", ["Autónomo", "Empresa", "Persona Física"], key="categoria")
     tipos_impuestos = st.multiselect(
-        "Tipos de Impuestos", 
+        "Tipos de Impuestos",
         ["IVA", "Impuesto a las Ganancias", "Ingresos Brutos", "Monotributo"],
         default=st.session_state['tipos_impuestos']
     )
     tipos_deducciones = st.multiselect(
-        "Tipos de Deducciones", 
+        "Tipos de Deducciones",
         ["Aportes Seguridad Social", "Gastos Deducibles", "Gastos Médicos", "Inversiones"],
         default=st.session_state['tipos_deducciones']
     )
     tipos_ingresos = st.multiselect(
-        "Tipos de Ingresos", 
+        "Tipos de Ingresos",
         ["Alquileres", "Inversiones", "Prestación de Servicios", "Venta de Bienes"],
         default=st.session_state['tipos_ingresos']
     )
@@ -203,7 +208,9 @@ with st.sidebar.form("formulario_cliente"):
                 "Tipos_Ingresos": [", ".join(tipos_ingresos)]
             })
 
-            st.session_state['dashboard_df'] = pd.concat([st.session_state['dashboard_df'], nuevo_cliente], ignore_index=True)
+            st.session_state['dashboard_df'] = pd.concat(
+                [st.session_state['dashboard_df'], nuevo_cliente]
+            ).drop_duplicates(subset=["Cliente"], ignore_index=True)
 
             # Generar alerta si la proyección excede el umbral
             if proyeccion > umbral_proyeccion:
